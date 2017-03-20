@@ -70,16 +70,19 @@ public class WebhooksListener extends BuildServerAdapter {
     }
 
     final PayloadBuild payloadBuild = PayloadBuild.builder().
+        title("Test").
+        text(build.getBuildType().getStatusDescriptor().getStatusDescriptor().getText().toLowerCase()).
+        build();
       // http://127.0.0.1:8080/viewLog.html?buildTypeId=Echo_Build&buildId=90
-      full_url("%s/viewLog.html?buildTypeId=%s&buildId=%s".f(buildServer.getRootUrl(),
-                                                             build.getBuildType().getExternalId(),
-                                                             build.getBuildId())).
-      build_id(build.getBuildNumber()).
-      status(build.getBuildType().getStatusDescriptor().getStatusDescriptor().getText().toLowerCase()).
-      scm(scm).
-      artifacts(artifacts(build)).
-      build();
-
+/**      full_url("%s/viewLog.html?buildTypeId=%s&buildId=%s".f(buildServer.getRootUrl(),
+*                                                             build.getBuildType().getExternalId(),
+*                                                             build.getBuildId())).
+*      build_id(build.getBuildNumber()).
+*      status(build.getBuildType().getStatusDescriptor().getStatusDescriptor().getText().toLowerCase()).
+*      scm(scm).
+*      artifacts(artifacts(build)).
+*      build();
+*/
     return WebhookPayload.of(build.getFullName(),
                              // http://127.0.0.1:8080/viewType.html?buildTypeId=Echo_Build
                              "%s/viewType.html?buildTypeId=%s".f(buildServer.getRootUrl(),
