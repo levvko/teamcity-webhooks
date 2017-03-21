@@ -2,14 +2,14 @@
 <teamcity-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:schemas-jetbrains-com:teamcity-plugin-v1-xml">
   <info>
     <name>webhooks</name>
-    <display-name>webhooks</display-name>
+    <display-name>MS Teams webhooks</display-name>
     <version>@Version@</version>
-    <description>Sends HTTP notifications to webhooks when project is built</description>
-    <download-url>https://github.com/cloudnative/teamcity-webhooks</download-url>
-    <email>evgenyg@gmail.com</email>
+    <description>Sends HTTP notifications to MS Teams webhooks when project is built. Based on plugin from Cloudnative</description>
+    <download-url>https://github.com/levvko/teamcity-webhooks</download-url>
+    <email>lev_kogan@epam.com</email>
     <vendor>
-      <name>CloudNative</name>
-      <url>https://github.com/cloudnative/teamcity-webhooks/</url>
+      <name>Lev Kogan</name>
+      <url>https://github.com/levvko/teamcity-webhooks/</url>
     </vendor>
   </info>
   <deployment use-separate-classloader="true" />
