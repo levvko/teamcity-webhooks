@@ -40,9 +40,26 @@ public class WebhooksListener extends BuildServerAdapter {
     val time = System.currentTimeMillis();
     try {
       val gson    = new Gson();
+      String text = "Build completed with status: [" +
+        build.getBuildType().getStatusDescriptor().getStatusDescriptor().getText().toLowerCase() +
+        "](" + 
+          buildServer.getRootUrl() + 
+          "/viewLog.html?buildTypeId=" +
+          build.getBuildType().getExternalId() + 
+          "&buildId=" + 
+          build.getBuildId() +
+        ") | [artifacts](" +
+          buildServer.getRootUrl() + 
+          "/viewLog.html?buildTypeId=" +
+          build.getBuildType().getExternalId() + 
+          "&tab=artifacts&buildId=" + 
+          build.getBuildId() +
+        ")"
+        ;
+
       val payload = gson.toJson(PayloadBuild.builder().
-        title("Test").
-        text(build.getBuildType().getStatusDescriptor().getStatusDescriptor().getText().toLowerCase()).
+        title(build.getFullName()).
+        text(text).
         build());
       //val payload = gson.toJson(buildPayload(build));
       gson.fromJson(payload, Map.class); // Sanity check of JSON generated
