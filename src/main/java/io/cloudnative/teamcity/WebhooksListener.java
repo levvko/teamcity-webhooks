@@ -48,19 +48,17 @@ public class WebhooksListener extends BuildServerAdapter {
         buildSatus = build.getStatusDescriptor().getText().toLowerCase();
       }
       
-      String buildPageUrl = buildServer.getRootUrl() + 
-          "/viewLog.html?buildTypeId=" +
-          build.getBuildType().getExternalId() + 
-          "&buildId=" + 
-          build.getBuildId();
+      //%serverUrl%/viewLog.html?buildTypeId=%buildTypeId%&buildId=%buildId%
+      String buildPageUrl = String.format("%s/viewLog.html?buildTypeId=%s&buildId=%s",
+        buildServer.getRootUrl(),
+        build.getBuildType().getExternalId(),
+        build.getBuildId())
       
-      String text = "Build completed with status: [" +
-        buildSatus +
-        "](" + 
-          buildPageUrl +
-        ") | [artifacts](" +
-          buildPageUrl + 
-          "&tab=artifacts)";
+      //Build complited with status: [%status%](%buildUrl%) | [artifacts](%artifactsUrl%)
+      String text = String.format("Build completed with status: [%s](%s) | [artifacts](%s&tab=artifacts)",
+        buildSatus,
+        buildPageUrl,
+        buildPageUrl);
 
       val payload = gson.toJson(PayloadBuild.builder().
         title(build.getFullName()).
