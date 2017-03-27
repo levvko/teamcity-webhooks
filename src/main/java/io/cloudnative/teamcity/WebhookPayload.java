@@ -23,14 +23,6 @@ public class WebhookPayload {
       String title;
       String text;
   }
-/**  static class PayloadBuild {
-*    String full_url;
-*    String build_id;
-*    String status;
-*    Scm    scm;
-*    Map<String,Map<String,String>> artifacts;
-*  }
-*/
 
   @Builder
   static class Scm {

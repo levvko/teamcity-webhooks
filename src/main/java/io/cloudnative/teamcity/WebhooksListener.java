@@ -40,28 +40,33 @@ public class WebhooksListener extends BuildServerAdapter {
     val time = System.currentTimeMillis();
     try {
       val gson    = new Gson();
-      String text = "Build completed with status: [" +
-        build.getStatusDescriptor().getText().toLowerCase() +
-        "](" + 
-          buildServer.getRootUrl() + 
+      //Returns "running" for successfull builds
+      String buildSatus = null;
+      if (build.getStatusDescriptor().isSuccessful()) {
+        buildSatus = "success";
+      } else {
+        buildSatus = build.getStatusDescriptor().getText().toLowerCase();
+      }
+      
+      String buildPageUrl = buildServer.getRootUrl() + 
           "/viewLog.html?buildTypeId=" +
           build.getBuildType().getExternalId() + 
           "&buildId=" + 
-          build.getBuildId() +
+          build.getBuildId();
+      
+      String text = "Build completed with status: [" +
+        buildSatus +
+        "](" + 
+          buildPageUrl +
         ") | [artifacts](" +
-          buildServer.getRootUrl() + 
-          "/viewLog.html?buildTypeId=" +
-          build.getBuildType().getExternalId() + 
-          "&tab=artifacts&buildId=" + 
-          build.getBuildId() +
-        ")"
-        ;
+          buildPageUrl + 
+          "&tab=artifacts)";
 
       val payload = gson.toJson(PayloadBuild.builder().
         title(build.getFullName()).
         text(text).
         build());
-      //val payload = gson.toJson(buildPayload(build));
+      
       gson.fromJson(payload, Map.class); // Sanity check of JSON generated
       log("Build '%s/#%s' finished, payload is '%s'".f(build.getFullName(), build.getBuildNumber(), payload));
 
