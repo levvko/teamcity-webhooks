@@ -43,6 +43,7 @@ public class WebhooksListener extends BuildServerAdapter {
       //Returns "running" for successfull builds
       String buildStatus = null;
       String text = null;
+      String themeColor = null;
       //%serverUrl%/viewLog.html?buildTypeId=%buildTypeId%&buildId=%buildId%
       String buildPageUrl = String.format("%sviewLog.html?buildTypeId=%s&buildId=%s",
         buildServer.getRootUrl(),
@@ -55,6 +56,7 @@ public class WebhooksListener extends BuildServerAdapter {
           buildStatus,
           buildPageUrl,
           buildPageUrl);
+        themeColor = "22FF00";
       } else {
         buildStatus = "failed";
         String buildDetails = build.getStatusDescriptor().getText().toLowerCase();
@@ -62,11 +64,13 @@ public class WebhooksListener extends BuildServerAdapter {
           buildDetails,
           buildPageUrl,
           buildPageUrl);
+        themeColor = "AA0000";
       }
 
       val payload = gson.toJson(PayloadBuild.builder().
         title(build.getFullName()).
         text(text).
+        themeColor(themeColor).
         build());
       
       gson.fromJson(payload, Map.class); // Sanity check of JSON generated

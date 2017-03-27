@@ -22,6 +22,7 @@ public class WebhookPayload {
   static class PayloadBuild {
       String title;
       String text;
+      String themeColor;
   }
 
   @Builder
