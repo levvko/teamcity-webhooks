@@ -41,24 +41,28 @@ public class WebhooksListener extends BuildServerAdapter {
     try {
       val gson    = new Gson();
       //Returns "running" for successfull builds
-      String buildSatus = null;
-      if (build.getStatusDescriptor().isSuccessful()) {
-        buildSatus = "success";
-      } else {
-        buildSatus = build.getStatusDescriptor().getText().toLowerCase();
-      }
-      
+      String buildStatus = null;
+      String text = null;
       //%serverUrl%/viewLog.html?buildTypeId=%buildTypeId%&buildId=%buildId%
-      String buildPageUrl = String.format("%s/viewLog.html?buildTypeId=%s&buildId=%s",
+      String buildPageUrl = String.format("%sviewLog.html?buildTypeId=%s&buildId=%s",
         buildServer.getRootUrl(),
         build.getBuildType().getExternalId(),
-        build.getBuildId())
-      
-      //Build complited with status: [%status%](%buildUrl%) | [artifacts](%artifactsUrl%)
-      String text = String.format("Build completed with status: [%s](%s) | [artifacts](%s&tab=artifacts)",
-        buildSatus,
-        buildPageUrl,
-        buildPageUrl);
+        build.getBuildId());
+      if (build.getStatusDescriptor().isSuccessful()) {
+        buildStatus = "success";
+        //Build complited with status: [%status%](%buildUrl%) | [artifacts](%artifactsUrl%)
+        text = String.format("Build completed with status: [%s](%s) | [artifacts](%s&tab=artifacts)",
+          buildStatus,
+          buildPageUrl,
+          buildPageUrl);
+      } else {
+        buildStatus = "failed";
+        String buildDetails = build.getStatusDescriptor().getText().toLowerCase();
+        text = String.format("Build failed with the error message: \n%s \n [*Build logs*](%s&tab=buildLog)",
+          buildDetails,
+          buildPageUrl,
+          buildPageUrl);
+      }
 
       val payload = gson.toJson(PayloadBuild.builder().
         title(build.getFullName()).
