@@ -80,7 +80,7 @@ public class WebhooksListener extends BuildServerAdapter {
     //List<Fact> facts = new ArrayList<Fact>();
     
     Section section = Section.builder().
-      title("details").
+      title("Details").
       facts(new ArrayList<Fact>()).
       build();
 
@@ -105,12 +105,18 @@ public class WebhooksListener extends BuildServerAdapter {
 
       themeColor = "229911";
     } else {
-      buildStatus = "failed";
-      String buildDetails = build.getStatusDescriptor().getText().toLowerCase();
-      text = String.format("Build failed with the error message: \n%s \n [*Build logs*](%s&tab=buildLog)",
-        buildDetails,
-        buildPageUrl,
-        buildPageUrl);
+      buildStatus = "Failed";
+      String buildStatusLink = "[" + buildStatus + "](" + buildPageUrl + ")";
+      section.facts.add(Fact.builder().
+        name("Status").
+        value(buildStatusLink).
+        build());
+      String buildDetails = build.getStatusDescriptor().getText();
+      section.facts.add(Fact.builder().
+        name("Message").
+        value(buildStatus).
+        build());
+      
       themeColor = "AA0000";
     }
 
