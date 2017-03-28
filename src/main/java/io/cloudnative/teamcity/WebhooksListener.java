@@ -7,6 +7,8 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.artifacts.ArtifactsGuard;
 import jetbrains.buildServer.vcs.VcsException;
@@ -37,89 +39,87 @@ public class WebhooksListener extends BuildServerAdapter {
 
   @Override
   public void buildFinished(@NonNull SRunningBuild build) {
-    val time = System.currentTimeMillis();
+    long time = System.currentTimeMillis();
     try {
-      val gson    = new Gson();
-      //Returns "running" for successfull builds
-      String buildStatus = null;
-      String text = null;
-      String themeColor = null;
-      //%serverUrl%/viewLog.html?buildTypeId=%buildTypeId%&buildId=%buildId%
-      String buildPageUrl = String.format("%sviewLog.html?buildTypeId=%s&buildId=%s",
-        buildServer.getRootUrl(),
-        build.getBuildType().getExternalId(),
-        build.getBuildId());
-      if (build.getStatusDescriptor().isSuccessful()) {
-        buildStatus = "success";
-        //Build complited with status: [%status%](%buildUrl%) | [artifacts](%artifactsUrl%)
-        text = String.format("Build completed with status: [%s](%s) | [artifacts](%s&tab=artifacts)",
-          buildStatus,
-          buildPageUrl,
-          buildPageUrl);
-        themeColor = "22FF00";
-      } else {
-        buildStatus = "failed";
-        String buildDetails = build.getStatusDescriptor().getText().toLowerCase();
-        text = String.format("Build failed with the error message: \n%s \n [*Build logs*](%s&tab=buildLog)",
-          buildDetails,
-          buildPageUrl,
-          buildPageUrl);
-        themeColor = "AA0000";
-      }
-
-      val payload = gson.toJson(PayloadBuild.builder().
-        title(build.getFullName()).
-        text(text).
-        themeColor(themeColor).
-        build());
+      Gson gson    = new Gson();
+      
+      String payload = gson.toJson(buildPayload(build));
       
       gson.fromJson(payload, Map.class); // Sanity check of JSON generated
-      log("Build '%s/#%s' finished, payload is '%s'".f(build.getFullName(), build.getBuildNumber(), payload));
+      log(String.format("Build '%s/#%s' finished, payload is '%s'",
+        build.getFullName(), 
+        build.getBuildNumber(), 
+        payload));
 
-      for (val url : settings.getUrls(build.getProjectExternalId())){
+      for (String url : settings.getUrls(build.getProjectExternalId())){
         postPayload(url, payload);
       }
 
-      log("Operation finished in %s ms".f(System.currentTimeMillis() - time));
+      log(String.format("Operation finished in %s ms",
+        System.currentTimeMillis() - time));
     }
     catch (Throwable t) {
-      error("Failed to listen on buildFinished() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
+      error(String.format("Failed to listen on buildFinished() of '%s' #%s",
+        build.getFullName(), 
+        build.getBuildNumber()), 
+        t);
     }
   }
 
 
   @SuppressWarnings({"FeatureEnvy" , "ConstantConditions"})
-  @SneakyThrows(VcsException.class)
+  //@SneakyThrows(VcsException.class)
   private WebhookPayload buildPayload(@NonNull SBuild build){
-    Scm scm      = null;
-    val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
+    
+    String buildStatus = buildServer.findBuildInstanceById(build.getBuildId()).
+      getStatusDescriptor().getText();
+    String text = null;
+    String themeColor = null;
+    String buildSummary = null;
+    String imgUrl = null;
+    //List<Fact> facts = new ArrayList<Fact>();
+    
+    Section section = Section.builder().
+      title("details").
+      facts(new ArrayList<Fact>()).
+      build();
 
-    if (! vcsRoots.isEmpty()) {
-      val vcsRoot = vcsRoots.get(0).getVcsRoot();
-      scm = Scm.builder().url(vcsRoot.getProperty("url")).
-                          branch(vcsRoot.getProperty("branch").replace("refs/heads/", "origin/")).
-                          commit(vcsRoot.getCurrentRevision().getVersion()).build();
+    //%serverUrl%/viewLog.html?buildTypeId=%buildTypeId%&buildId=%buildId%
+    String buildPageUrl = String.format("%sviewLog.html?buildTypeId=%s&buildId=%s",
+      buildServer.getRootUrl(),
+      build.getBuildType().getExternalId(),
+      build.getBuildId());
+    
+    if (build.getStatusDescriptor().isSuccessful()) {
+      text = "Build completed";
+      //Build complited with status: [%status%](%buildUrl%) | [artifacts](%artifactsUrl%)
+      section.facts.add(Fact.builder().
+        name("Status").
+        value(buildStatus).
+        build());
+
+      section.facts.add(Fact.builder().
+        name("Artifacts").
+        value("[test]("+buildPageUrl+"&tab=artifacts)").
+        build());
+
+      themeColor = "229911";
+    } else {
+      buildStatus = "failed";
+      String buildDetails = build.getStatusDescriptor().getText().toLowerCase();
+      text = String.format("Build failed with the error message: \n%s \n [*Build logs*](%s&tab=buildLog)",
+        buildDetails,
+        buildPageUrl,
+        buildPageUrl);
+      themeColor = "AA0000";
     }
 
-    final PayloadBuild payloadBuild = PayloadBuild.builder().
-        title("Test").
-        text(build.getBuildType().getStatusDescriptor().getStatusDescriptor().getText().toLowerCase()).
-        build();
-      // http://127.0.0.1:8080/viewLog.html?buildTypeId=Echo_Build&buildId=90
-/**      full_url("%s/viewLog.html?buildTypeId=%s&buildId=%s".f(buildServer.getRootUrl(),
-*                                                             build.getBuildType().getExternalId(),
-*                                                             build.getBuildId())).
-*      build_id(build.getBuildNumber()).
-*      status(build.getBuildType().getStatusDescriptor().getStatusDescriptor().getText().toLowerCase()).
-*      scm(scm).
-*      artifacts(artifacts(build)).
-*      build();
-*/
+    ArrayList<Section> sections = new ArrayList<Section>();
+    sections.add(section);
     return WebhookPayload.of(build.getFullName(),
-                             // http://127.0.0.1:8080/viewType.html?buildTypeId=Echo_Build
-                             "%s/viewType.html?buildTypeId=%s".f(buildServer.getRootUrl(),
-                                                                 build.getBuildType().getExternalId()),
-                             payloadBuild);
+                             text,
+                             themeColor,
+                             sections);
   }
 
 

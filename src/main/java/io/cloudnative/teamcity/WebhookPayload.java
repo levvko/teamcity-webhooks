@@ -4,8 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.experimental.FieldDefaults;
-import java.util.Map;
-
+import java.util.*;
 
 /**
  * https://cloudnative.io/docs/bakery/json-webhook/
@@ -14,21 +13,21 @@ import java.util.Map;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class WebhookPayload {
 
-  String       name;
-  String       url;
-  PayloadBuild build;
-
+  String title;
+  String summary;
+  String themeColor;
+  List<Section> sections;
+  
   @Builder
-  static class PayloadBuild {
-      String title;
-      String text;
-      String themeColor;
+  static class Section{
+    String title;
+    List<Fact> facts;
+  }
+  
+  @Builder
+  static class Fact {
+    String name;
+    String value;
   }
 
-  @Builder
-  static class Scm {
-    String url;
-    String branch;
-    String commit;
-  }
 }
