@@ -20,7 +20,6 @@ public class WebhookPayload {
   
   @Builder
   static class Section{
-    String title;
     List<Fact> facts;
   }
   

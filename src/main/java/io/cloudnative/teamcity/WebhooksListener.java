@@ -11,6 +11,9 @@ import com.google.gson.JsonObject;
 
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.artifacts.ArtifactsGuard;
+import jetbrains.buildServer.serverSide.artifacts.BuildArtifact;
+import jetbrains.buildServer.serverSide.artifacts.BuildArtifacts;
+import jetbrains.buildServer.serverSide.artifacts.BuildArtifactsViewMode; 
 import jetbrains.buildServer.vcs.VcsException;
 import jodd.http.HttpRequest;
 import jodd.http.net.SocketHttpConnection;
@@ -73,40 +76,34 @@ public class WebhooksListener extends BuildServerAdapter {
     
     String buildStatus = buildServer.findBuildInstanceById(build.getBuildId()).
       getStatusDescriptor().getText();
-    String text = null;
+    String buildStatusLink = null;
+    String text = "Build completed";
     String themeColor = null;
     String buildSummary = null;
     String imgUrl = null;
     //List<Fact> facts = new ArrayList<Fact>();
     
     Section section = Section.builder().
-      title("Details").
       facts(new ArrayList<Fact>()).
       build();
 
     //%serverUrl%/viewLog.html?buildTypeId=%buildTypeId%&buildId=%buildId%
-    String buildPageUrl = String.format("%sviewLog.html?buildTypeId=%s&buildId=%s",
+    String buildPageUrl = String.format("%s/viewLog.html?buildTypeId=%s&buildId=%s",
       buildServer.getRootUrl(),
       build.getBuildType().getExternalId(),
       build.getBuildId());
     
     if (build.getStatusDescriptor().isSuccessful()) {
-      text = "Build completed";
-      //Build complited with status: [%status%](%buildUrl%) | [artifacts](%artifactsUrl%)
+      buildStatusLink = "[" + buildStatus + "](" + buildPageUrl + ")";
       section.facts.add(Fact.builder().
         name("Status").
-        value(buildStatus).
-        build());
-
-      section.facts.add(Fact.builder().
-        name("Artifacts").
-        value("[test]("+buildPageUrl+"&tab=artifacts)").
+        value(buildStatusLink).
         build());
 
       themeColor = "229911";
     } else {
       buildStatus = "Failed";
-      String buildStatusLink = "[" + buildStatus + "](" + buildPageUrl + ")";
+      buildStatusLink = "[" + buildStatus + "](" + buildPageUrl + ")";
       section.facts.add(Fact.builder().
         name("Status").
         value(buildStatusLink).
@@ -114,12 +111,19 @@ public class WebhooksListener extends BuildServerAdapter {
       String buildDetails = build.getStatusDescriptor().getText();
       section.facts.add(Fact.builder().
         name("Message").
-        value(buildStatus).
+        value(build.getStatusDescriptor().getText()).
         build());
       
       themeColor = "AA0000";
     }
 
+    if(build.getArtifacts(BuildArtifactsViewMode.VIEW_DEFAULT).isAvailable()) {
+      section.facts.add(Fact.builder().
+        name("Artifacts").
+        value("[View]("+buildPageUrl+"&tab=artifacts)").
+        build());
+    }
+    
     ArrayList<Section> sections = new ArrayList<Section>();
     sections.add(section);
     return WebhookPayload.of(build.getFullName(),
