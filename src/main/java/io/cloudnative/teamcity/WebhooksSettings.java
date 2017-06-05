@@ -26,7 +26,7 @@ public class WebhooksSettings {
   Map<String,Set<String>> urls;
 
   public WebhooksSettings(@NonNull ServerPaths serverPaths) {
-    settingsFile = new File(serverPaths.getConfigDir(), SETTINGS_FILE);
+    settingsFile = newFile(serverPaths.getConfigDir(), SETTINGS_FILE);
     urls         = restoreSettings();
   }
 
