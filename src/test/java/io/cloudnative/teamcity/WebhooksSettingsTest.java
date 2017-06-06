@@ -7,6 +7,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.log.IdeaLogger;
 import jetbrains.buildServer.serverSide.ServerPaths;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,6 +19,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,7 +57,7 @@ public class WebhooksSettingsTest {
 
     @SuppressWarnings({"unchecked", "ResultOfMethodCallIgnored"})
     private void prepareTarget() {
-        Map<String, List<String>> map = Maps.newHashMap();
+        Map<String, List<String>> map = Maps.newLinkedHashMap();
         map.put("projectIdA", Lists.newArrayList("http://a1", "http://a2"));
         map.put("projectIdB", Lists.newArrayList("http://b1", "http://b2"));
         when(WebhooksUtils.readJsonFile(settingsFile)).thenReturn((Map) map);
@@ -76,7 +78,7 @@ public class WebhooksSettingsTest {
 
         Set<String> urls = target.getUrls("projectIdA");
 
-        assertEquals(Sets.newHashSet("http://a1", "http://a2"), urls);
+        assertEquals(asSet("http://a1", "http://a2"), urls);
     }
 
     @Test
@@ -89,10 +91,10 @@ public class WebhooksSettingsTest {
         target.addUrl("projectIdC", "http://c1");
         Set<String> urls = target.getUrls("projectIdC");
 
-        assertEquals(Sets.newHashSet("http://c1"), urls);
+        assertEquals(asSet("http://c1"), urls);
 
         verifyStatic();
-        Files.write("{\"projectIdA\":[\"http://a1\",\"http://a2\"],\"projectIdB\":[\"http://b2\",\"http://b1\"],\"projectIdC\":[\"http://c1\"]}",
+        Files.write("{\"projectIdA\":[\"http://a1\",\"http://a2\"],\"projectIdB\":[\"http://b1\",\"http://b2\"],\"projectIdC\":[\"http://c1\"]}",
                 settingsFile, Charset.forName("UTF-8"));
     }
 
@@ -106,10 +108,15 @@ public class WebhooksSettingsTest {
         target.removeUrl("projectIdA", "http://a1");
         Set<String> urls = target.getUrls("projectIdA");
 
-        assertEquals(Sets.newHashSet("http://a2"), urls);
+        assertEquals(asSet("http://a2"), urls);
 
         verifyStatic();
-        Files.write("{\"projectIdA\":[\"http://a2\"],\"projectIdB\":[\"http://b2\",\"http://b1\"]}",
+        Files.write("{\"projectIdA\":[\"http://a2\"],\"projectIdB\":[\"http://b1\",\"http://b2\"]}",
                 settingsFile, Charset.forName("UTF-8"));
+    }
+
+    @NotNull
+    private Set<String> asSet(String ... args) {
+        return Sets.newLinkedHashSet(Arrays.asList(args));
     }
 }

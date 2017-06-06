@@ -57,13 +57,13 @@ public class WebhooksSettings {
   private Map<String,Set<String>> restoreSettings(){
 
     @SuppressWarnings({"TypeMayBeWeakened", "CollectionDeclaredAsConcreteClass"})
-    val result = new HashMap<String, Set<String>>();
+    val result = new LinkedHashMap<String, Set<String>>();
 
     if (settingsFile.isFile()) {
       try {
         Map<String, List<String>> map = (Map<String, List<String>>) readJsonFile(settingsFile);
         for (String url : map.keySet()){
-          result.put(url, Sets.newHashSet(map.get(url)));
+          result.put(url, Sets.newLinkedHashSet(map.get(url)));
         }
       }
       catch (Throwable t) {
