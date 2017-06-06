@@ -5,18 +5,6 @@
   <artifactId>webhooks</artifactId>
   <version>0.0.7</version>
 
-  <properties>
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-    <pitest-maven.version>1.1.9</pitest-maven.version>
-    <pitest.targetClasses>io.cloudnative.teamcity.*</pitest.targetClasses>
-    <pitest.targetTests>io.cloudnative.teamcity.*</pitest.targetTests>
-    <pitest.timestampedReports>false</pitest.timestampedReports>
-    <pitest.threads>4</pitest.threads>
-  </properties>
-
   <repositories>
     <repository>
       <id>jetbrains</id>
@@ -28,35 +16,6 @@
     <developerConnection>scm:git:git@github.com:cloudnative/teamcity-webhooks.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
-
-  <profiles>
-    <!-- Generate coverage report with command: -->
-    <!-- mvn clean test-compile -P pitest -->
-    <!-- Generated report can be found at target/pit-reports/index.html -->
-    <profile>
-      <id>pitest</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.pitest</groupId>
-            <artifactId>pitest-maven</artifactId>
-            <executions>
-              <execution>
-                <id>pitest-mutationCoverage</id>
-                <goals>
-                  <goal>mutationCoverage</goal>
-                </goals>
-                <phase>test-compile</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <build>
     <defaultGoal>package</defaultGoal>
@@ -132,25 +91,6 @@
           <tagNameFormat>@{version}</tagNameFormat>
           <suppressCommitBeforeTag>true</suppressCommitBeforeTag>
           <remoteTagging>false</remoteTagging>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.pitest</groupId>
-        <artifactId>pitest-maven</artifactId>
-        <version>${pitest-maven.version}</version>
-        <configuration>
-          <timeoutConstant>5000</timeoutConstant>
-          <targetClasses>
-            <param>${pitest.targetClasses}</param>
-          </targetClasses>
-          <targetTests>
-            <param>${pitest.targetTests}</param>
-          </targetTests>
-          <timestampedReports>${pitest.timestampedReports}</timestampedReports>
-          <threads>${pitest.threads}</threads>
-          <historyOutputFile>${project.build.directory}/pit-reports/pitest.history</historyOutputFile>
-          <historyInputFile>${project.build.directory}/pit-reports/pitest.history</historyInputFile>
         </configuration>
       </plugin>
     </plugins>
