@@ -41,6 +41,12 @@ final class WebhooksUtils {
     }
   }
 
+  /**
+   * Creates new file.
+   */
+  static File newFile(@NonNull String parent, @NonNull String child) {
+    return new File(parent, child);
+  }
 
   /**
    * Retrieves file's path, canonical or absolute.
